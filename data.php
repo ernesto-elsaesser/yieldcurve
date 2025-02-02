@@ -1,5 +1,5 @@
 <?php
-$url = 'https://fred.stlouisfed.org/graph/fredgraph.csv?'
+$url = 'https://fred.stlouisfed.org/graph/fredgraph.csv?';
 $params = array(
     'mode' => 'fred',
     'id' => 'DSG' . $_GET['maturity'],
