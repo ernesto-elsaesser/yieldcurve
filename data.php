@@ -8,8 +8,5 @@ $params = array(
     'coed' => date('Y-m-d')
 );
 $url .= http_build_query($params);
-$curl = curl_init($url);
-$csv = curl_exec($curl);
-curl_close($curl);
-echo $csv;
+echo file_get_contents($url);
 ?>
