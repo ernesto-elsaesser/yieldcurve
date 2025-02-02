@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>Yield Curve</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <style>
+body {
+    font-family: "Times New Roman", serif;
+    padding: 10px;
+}
+#content {
+    max-width: 640px;
+    margin: 20px auto; 
+    text-align: center;
+}
+#chart {
+    width: 100%;
+}
+#chart canvas {
+    width: 100%;
+}
+#timeline {
+    width: 100%;
+    margin: 40px auto;
+}
+#footer {
+    margin: 20px;
+    color: grey;
+    font-size: 15px;
+}
+#footer a {
+    color: grey;
+}
+h1 {
+    font-size: 28px;
+}
+h2 {
+    padding-top: 10px;
+    font-size: 20px;
+}
+label {
+    font-size: 15px;
+    letter-spacing: 0.05em;
+}
+input[type=range] {
+  height: 38px;
+  width: 80%;
+  margin-bottom: 10px;
+}
+input[type=range]:focus {
+  outline: none;
+}
+input[type=range]::-webkit-slider-runnable-track {
+  width: 100%;
+  height: 6px;
+  cursor: pointer;
+  box-shadow: 0px 0px 0px #000000;
+  background: #CCCCCC;
+  border-radius: 3px;
+  border: 0px solid #010101;
+}
+input[type=range]::-webkit-slider-thumb {
+  box-shadow: 0px 0px 0px #000031;
+  border: 0px solid #36A2EB;
+  height: 32px;
+  width: 32px;
+  border-radius: 16px;
+  background: #36A2EB;
+  cursor: pointer;
+  -webkit-appearance: none;
+  margin-top: -13px;
+}
+input[type=range]:focus::-webkit-slider-runnable-track {
+  background: #CCCCCC;
+}
+input[type=range]::-moz-range-track {
+  width: 100%;
+  height: 6px;
+  cursor: pointer;
+  box-shadow: 0px 0px 0px #000000;
+  background: #CCCCCC;
+  border-radius: 3px;
+  border: 0px solid #010101;
+}
+input[type=range]::-moz-range-thumb {
+  box-shadow: 0px 0px 0px #000031;
+  border: 0px solid #36A2EB;
+  height: 32px;
+  width: 32px;
+  border-radius: 16px;
+  background: #36A2EB;
+  cursor: pointer;
+}
+input[type=range]::-ms-track {
+  width: 100%;
+  height: 6px;
+  cursor: pointer;
+  background: transparent;
+  border-color: transparent;
+  color: transparent;
+}
+input[type=range]::-ms-fill-lower {
+  background: #CCCCCC;
+  border: 0px solid #010101;
+  border-radius: 6px;
+  box-shadow: 0px 0px 0px #000000;
+}
+input[type=range]::-ms-fill-upper {
+  background: #CCCCCC;
+  border: 0px solid #010101;
+  border-radius: 6px;
+  box-shadow: 0px 0px 0px #000000;
+}
+input[type=range]::-ms-thumb {
+  margin-top: 1px;
+  box-shadow: 0px 0px 0px #000031;
+  border: 0px solid #36A2EB;
+  height: 32px;
+  width: 32px;
+  border-radius: 16px;
+  background: #36A2EB;
+  cursor: pointer;
+}
+input[type=range]:focus::-ms-fill-lower {
+  background: #CCCCCC;
+}
+input[type=range]:focus::-ms-fill-upper {
+  background: #CCCCCC;
+}
+        </style>
+    </head>
+    <body>
+        <div id="content">
+            <h1>U.S. Treasury Yield Curve</h1>
+            <div id="chart">
+                <h2 id="title">Loading ...</h2>
+                <canvas id="canvas" />
+            </div>
+            <div id="timeline">
+                <label target="day-slider">DAY</label><br/>
+                <input type="range" min="-30" max="0" value="0" id="day-slider" /><br/>
+                <label target="month-slider">MONTH</label><br/>
+                <input type="range" min="-11" max="0" value="0" id="month-slider" /><br/>
+                <label target="year-slider">YEAR</label><br/>
+                <input type="range" min="-5" max="0" value="0" id="year-slider" /><br/>
+            </div>
+            <div id="footer">Data from <a href="https://fred.stlouisfed.org/categories/115">FRED</a></div>
+        </div>
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <script>
+var title = document.getElementById("title");
+var canvas = document.getElementById("canvas");
+var daySlider = document.getElementById("day-slider");
+var monthSlider = document.getElementById("month-slider");
+var yearSlider = document.getElementById("year-slider");
+
+var chart = new Chart(canvas, {
+    type: "line",
+    data: {
+        labels: ["1M", "3M", "6M", "1Y", "2Y", "3Y", "5Y", "7Y", "10Y", "20Y", "30Y"],
+        datasets: [{"data": null}]
+    },
+    options: {
+        plugins: {
+            legend: {
+                display: false
+            }
+        },
+        scales: {
+            y: {
+                min: 0,
+                max: 6,
+                ticks: {
+                    callback: (val, idx, _) => val + "%",
+                }
+            }
+        }
+    }
+});
+
+var now = new Date();
+var year = now.getFullYear();
+var monthIndex = now.getMonth();
+var day = now.getDate();
+
+var curves = {};
+
+function selectDate() {
+
+    var yearOffset = -yearSlider.value;
+    var monthOffset = -monthSlider.value;
+    var dayOffset = -daySlider.value;
+
+    var date = new Date(year - yearOffset, monthIndex - monthOffset, day - dayOffset);
+    var label = date.toISOString().substr(0, 10);
+
+    while (curves[label] == undefined) {
+        date.setDate(date.getDate() - 1);
+        label = date.toISOString().substr(0, 10);
+    }
+
+    title.innerHTML = date.toLocaleDateString(undefined, {dateStyle: "long"});
+    chart.data.datasets[0].data = curves[label];
+    chart.update();
+}
+            
+daySlider.oninput = selectDate;
+monthSlider.oninput = selectDate;
+yearSlider.oninput = selectDate;
+
+fetch("yields.json")
+    .then((res) => res.json())
+    .then(function(data) {
+        curves = data;
+        selectDate();
+    });
+
+        </script>
+    </body>
+</html>
