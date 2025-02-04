@@ -4,7 +4,7 @@ $params = array(
     'mode' => 'fred',
     'id' => 'DGS' . $_GET['maturity'],
     'fq' => 'Daily',
-    'cosd' => '2019-01-01',
+    'cosd' => '2021-01-01',
     'coed' => date('Y-m-d')
 );
 $url .= http_build_query($params);
