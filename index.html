@@ -9,15 +9,47 @@
 <canvas id="canvas"></canvas>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script> 
+<script>
+
+// "1MO", "3MO", "6MO", "1", "2", "3", "5", "7", "10", "20", "30"
+let MATURITIES = {
+    "1": "red",
+    "3": "purple",
+    "5": "blue",
+    "10": "teal",
+}
 
 let ctx = document.getElementById("canvas")
 
 let chart = new Chart(ctx, {
     type: "line",
     data: {
-        // labels: ["1M", "3M", "6M", "1Y", "2Y", "3Y", "5Y", "7Y", "10Y", "20Y", "30Y"],
-        datasets: []
+        datasets: [
+            {
+                label: "1Y",
+                maturity: "1",
+                borderColor: "#FF0000",
+                pointStyle: false,
+            },
+            {
+                label: "3Y",
+                maturity: "3",
+                borderColor: "#AA0055",
+                pointStyle: false,
+            },
+            {
+                label: "5Y",
+                maturity: "5",
+                borderColor: "#5500AA",
+                pointStyle: false,
+            },
+            {
+                label: "10Y",
+                maturity: "10",
+                borderColor: "#0000FF",
+                pointStyle: false,
+            },
+        ]
     },
     options: {
         scales: {
@@ -32,22 +64,18 @@ let chart = new Chart(ctx, {
     },
 })
 
-async function add(maturity, color) {
-    let res = await fetch("data.php?maturity=" + maturity)
+async function add(dataset) {
+    let res = await fetch("data.php?maturity=" + dataset.maturity)
     let csv = await res.text()
     let rows = csv.split("\n").slice(1, -1).map(l => l.split(","))
     let dates = rows.map(r => r[0])
     let yields = rows.map(r => r[1] == "" ? null : parseFloat(r[1]))
     chart.data.labels = dates
-    chart.data.datasets.push({label: maturity + "Y", borderColor: color, data: yields})
+    dataset.data = yields
     chart.update()
 }
 
-// "1MO", "3MO", "6MO", "1", "2", "3", "5", "7", "10", "20", "30"
-add("1", "red")
-add("3", "blue")
-add("5", "green")
-add("10", "orange")
+chart.data.datasets.forEach(add)
 
 </script>
 </body>
